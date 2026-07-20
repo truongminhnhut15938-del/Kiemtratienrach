@@ -6,9 +6,6 @@ import os
 
 app = FastAPI()
 
-# Tỷ lệ khung hình chuẩn của tiền polyme VN (Rộng/Cao) ~2.2
-ASPECT_RATIO_CHUAN = 2.2 
-
 @app.post("/quet-tien")
 async def quet_tien_api(file: UploadFile = File(...), menh_gia: str = Form(...)):
     contents = await file.read()
@@ -18,35 +15,36 @@ async def quet_tien_api(file: UploadFile = File(...), menh_gia: str = Form(...))
     if img is None:
         return {"status": "error", "message": "Ảnh không hợp lệ"}
 
+    # Tiền polyme VN có đặc điểm tương phản cao với nền
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-    gray = clahe.apply(gray)
-    thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
-                                   cv2.THRESH_BINARY_INV, 11, 2)
+    
+    # Dùng GaussianBlur để giảm nhiễu trước khi threshold
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    _, thresh = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
     
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if not contours:
         return {"status": "error", "message": "Không tìm thấy tiền"}
     
-    # Lấy đường bao tờ tiền lớn nhất
+    # Lấy tờ tiền lớn nhất
     cnt = max(contours, key=cv2.contourArea)
     x, y, w, h = cv2.boundingRect(cnt)
     
-    # 1. Tính diện tích thực tế của mảnh tiền (contourArea)
+    # 1. Diện tích thực tế của mảnh tiền (pixel)
     dien_tich_thuc = cv2.contourArea(cnt)
     
-    # 2. Tính "Diện tích lý tưởng" của tờ tiền nguyên vẹn
-    # Sử dụng chiều cao (h) hiện tại của mảnh tiền làm thước đo 
-    # Nếu tờ tiền còn nguyên, chiều dài phải là (h * ASPECT_RATIO_CHUAN)
-    dien_tich_chuan = h * (h * ASPECT_RATIO_CHUAN)
+    # 2. Diện tích khung bao (Bounding Box)
+    dien_tich_bao = w * h
     
-    # 3. Tính tỷ lệ thực tế
-    ty_le_thuc = dien_tich_thuc / dien_tich_chuan
+    # 3. Tính "Tỷ lệ lấp đầy" (Fill Ratio)
+    # Tờ tiền nguyên vẹn lấp đầy khoảng 92-95% diện tích khung bao
+    ty_le_lap_day = dien_tich_thuc / dien_tich_bao
     
-    # Giới hạn tối đa là 1.0 (100%)
+    # 4. Chuẩn hóa về thang điểm 1.0 (Giả định tờ tiền chuẩn lấp đầy 0.92)
+    ty_le_thuc = ty_le_lap_day / 0.92
     ty_le_thuc = min(ty_le_thuc, 1.0)
     
-    # 4. Ngưỡng thu đổi khắt khe (0.60 = 60%)
+    # Ngưỡng 0.60 (60%) là đủ khắt khe cho tiền rách
     nguong_thu_doi = 0.60
     ket_luan = "ĐỦ ĐIỀU KIỆN THU ĐỔI" if ty_le_thuc >= nguong_thu_doi else "KHÔNG ĐỦ ĐIỀU KIỆN THU ĐỔI"
     
@@ -56,7 +54,8 @@ async def quet_tien_api(file: UploadFile = File(...), menh_gia: str = Form(...))
         "ty_le_con_lai": round(ty_le_thuc * 100, 2),
         "debug_info": {
             "dien_tich_thuc": dien_tich_thuc,
-            "dien_tich_chuan": dien_tich_chuan
+            "dien_tich_bao": dien_tich_bao,
+            "ty_le_lap_day": round(ty_le_lap_day, 4)
         }
     }
 
