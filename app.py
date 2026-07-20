@@ -6,51 +6,55 @@ import os
 
 app = FastAPI()
 
-# Kích thước chuẩn (dùng để xác định tỷ lệ)
-CAU_HINH_GRID = {
-    "500000": {'dai': 152, 'rong': 65},
-    "200000": {'dai': 148, 'rong': 65},
-    "100000": {'dai': 144, 'rong': 65},
-    "50000": {'dai': 140, 'rong': 65},
-    "20000": {'dai': 136, 'rong': 65},
-    "10000": {'dai': 132, 'rong': 65}
-}
-
 @app.post("/quet-tien")
 async def quet_tien_api(file: UploadFile = File(...), menh_gia: str = Form(...)):
-    if menh_gia not in CAU_HINH_GRID:
-        return {"status": "error", "message": "Mệnh giá không hợp lệ"}
-
+    # 1. Đọc ảnh từ file upload
     contents = await file.read()
     nparr = np.frombuffer(contents, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     
-    # 1. Tách tờ tiền ra khỏi nền (Dùng Contour để crop)
+    if img is None:
+        return {"status": "error", "message": "Ảnh không hợp lệ"}
+
+    # 2. Xử lý ảnh: Chuyển sang xám và làm mờ để giảm nhiễu
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    _, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
     
+    # 3. Tách nền (Thresh)
+    # Dùng THRESH_BINARY_INV + OTSU để tờ tiền (thường là vùng sáng) nổi bật trên nền
+    _, thresh = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    
+    # 4. Tìm đường bao (Contour) lớn nhất
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if not contours:
         return {"status": "error", "message": "Không tìm thấy tờ tiền"}
     
     cnt = max(contours, key=cv2.contourArea)
-    x, y, w, h = cv2.boundingRect(cnt)
-    roi = gray[y:y+h, x:x+w] # Cắt vùng tờ tiền
     
-    # 2. Chia lưới 10x10 (Tổng 100 ô) trên vùng đã cắt
+    # 5. Tạo Mask (Mặt nạ) để chỉ đếm diện tích tờ tiền
+    mask = np.zeros_like(gray)
+    cv2.drawContours(mask, [cnt], -1, 255, -1)
+    
+    # 6. Chia lưới 10x10 trên vùng bao (Bounding Box) của tờ tiền
+    x, y, w, h = cv2.boundingRect(cnt)
+    # Lấy vùng tờ tiền đã mask
+    roi_masked = cv2.bitwise_and(mask, mask, mask=mask)
+    crop = roi_masked[y:y+h, x:x+w]
+    
     rows, cols = 10, 10
-    h_step, w_step = roi.shape[0] // rows, roi.shape[1] // cols
+    h_step, w_step = crop.shape[0] // rows, crop.shape[1] // cols
     
     so_o_con_nguyen = 0
+    # Đếm số ô có diện tích > 20% (ngưỡng để coi là còn tiền)
+    nguong_o = h_step * w_step * 0.2
     
     for r in range(rows):
         for c in range(cols):
-            cell = roi[r*h_step:(r+1)*h_step, c*w_step:(c+1)*w_step]
-            # Nếu phần lớn ô là màu trắng (tờ tiền) thì coi là còn nguyên
-            if cv2.countNonZero(cell) > (h_step * w_step * 0.5):
+            cell = crop[r*h_step:(r+1)*h_step, c*w_step:(c+1)*w_step]
+            if cv2.countNonZero(cell) > nguong_o:
                 so_o_con_nguyen += 1
                 
-    # 3. Kết luận dựa trên 60%
+    # 7. Tính kết quả
     ty_le = so_o_con_nguyen / 100
     ket_luan = "ĐỦ ĐIỀU KIỆN THU ĐỔI" if ty_le >= 0.6 else "KHÔNG ĐỦ ĐIỀU KIỆN THU ĐỔI"
     
