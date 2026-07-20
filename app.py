@@ -41,8 +41,8 @@ async def quet_tien_api(file: UploadFile = File(...), menh_gia: str = Form(...))
     x, y, w, h = cv2.boundingRect(cnt)
     crop = roi_masked[y:y+h, x:x+w]
     
-    # 6. Chia lưới 10x10 và đếm diện tích
-    rows, cols = 10, 10
+    # 6. Chia lưới 50x50 và đếm diện tích
+    rows, cols = 50, 50
     h_step, w_step = crop.shape[0] // rows, crop.shape[1] // cols
     
     so_o_con_nguyen = 0
