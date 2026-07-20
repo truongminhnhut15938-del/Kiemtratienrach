@@ -6,16 +6,8 @@ import os
 
 app = FastAPI()
 
-# Diện tích chuẩn (mm^2) theo tiêu chuẩn NHNN
-# (Dài * Rộng)
-BANG_DIEN_TICH_CHUAN_MM2 = {
-    "10000": 132 * 60,
-    "20000": 136 * 65,
-    "50000": 140 * 65,
-    "100000": 144 * 65,
-    "200000": 148 * 65,
-    "500000": 152 * 65
-}
+# Tỷ lệ khung hình chuẩn của tiền polyme VN (Rộng/Cao) ~2.2
+ASPECT_RATIO_CHUAN = 2.2 
 
 @app.post("/quet-tien")
 async def quet_tien_api(file: UploadFile = File(...), menh_gia: str = Form(...)):
@@ -36,34 +28,35 @@ async def quet_tien_api(file: UploadFile = File(...), menh_gia: str = Form(...))
     if not contours:
         return {"status": "error", "message": "Không tìm thấy tiền"}
     
+    # Lấy đường bao tờ tiền lớn nhất
     cnt = max(contours, key=cv2.contourArea)
     x, y, w, h = cv2.boundingRect(cnt)
     
-    # 1. Tính diện tích thực (pixel)
-    dien_tich_pixel = cv2.contourArea(cnt)
+    # 1. Tính diện tích thực tế của mảnh tiền (contourArea)
+    dien_tich_thuc = cv2.contourArea(cnt)
     
-    # 2. Tính diện tích khung bao (pixel)
-    dien_tich_khung_pixel = w * h
+    # 2. Tính "Diện tích lý tưởng" của tờ tiền nguyên vẹn
+    # Sử dụng chiều cao (h) hiện tại của mảnh tiền làm thước đo 
+    # Nếu tờ tiền còn nguyên, chiều dài phải là (h * ASPECT_RATIO_CHUAN)
+    dien_tich_chuan = h * (h * ASPECT_RATIO_CHUAN)
     
-    # 3. Tỷ lệ diện tích tờ tiền so với khung bao (tiền polyme thường chiếm ~95-98% khung)
-    # Tỷ lệ này giúp loại bỏ ảnh hưởng của khoảng cách chụp
-    ty_le_chiem_dung = dien_tich_pixel / dien_tich_khung_pixel
+    # 3. Tính tỷ lệ thực tế
+    ty_le_thuc = dien_tich_thuc / dien_tich_chuan
     
-    # Chuẩn hóa: Giả định tờ tiền nguyên vẹn chiếm 96% khung bao
-    # Nếu tờ tiền rách, ty_le_chiem_dung sẽ giảm sâu
-    ty_le_thuc = ty_le_chiem_dung / 0.96
+    # Giới hạn tối đa là 1.0 (100%)
     ty_le_thuc = min(ty_le_thuc, 1.0)
     
-    # Kết luận
-    ket_luan = "ĐỦ ĐIỀU KIỆN THU ĐỔI" if ty_le_thuc >= 0.70 else "KHÔNG ĐỦ ĐIỀU KIỆN THU ĐỔI"
+    # 4. Ngưỡng thu đổi khắt khe (0.60 = 60%)
+    nguong_thu_doi = 0.60
+    ket_luan = "ĐỦ ĐIỀU KIỆN THU ĐỔI" if ty_le_thuc >= nguong_thu_doi else "KHÔNG ĐỦ ĐIỀU KIỆN THU ĐỔI"
     
     return {
         "status": "success",
         "ket_luan": ket_luan,
         "ty_le_con_lai": round(ty_le_thuc * 100, 2),
         "debug_info": {
-            "area_pixel": dien_tich_pixel,
-            "box_pixel": dien_tich_khung_pixel
+            "dien_tich_thuc": dien_tich_thuc,
+            "dien_tich_chuan": dien_tich_chuan
         }
     }
 
