@@ -6,15 +6,15 @@ import os
 
 app = FastAPI()
 
-# BẢNG DIỆN TÍCH TIÊU CHUẨN (Quy đổi ra số ô trong lưới 50x50)
-# Đây là "thước đo" cứng để đối soát mệnh giá
-BANG_DIEN_TICH_CHUAN = {
-    "10000": 2100,
-    "20000": 2250,
-    "50000": 2350,
-    "100000": 2400,
-    "200000": 2480,
-    "500000": 2500
+# BẢNG DIỆN TÍCH CHUẨN (tính bằng mm^2) dựa trên kích thước NHNN
+# Diện tích = Dài * Rộng
+BANG_DIEN_TICH_CHUAN_MM2 = {
+    "10000": 132 * 60,
+    "20000": 136 * 65,
+    "50000": 140 * 65,
+    "100000": 144 * 65,
+    "200000": 148 * 65,
+    "500000": 152 * 65
 }
 
 @app.post("/quet-tien")
@@ -26,53 +26,47 @@ async def quet_tien_api(file: UploadFile = File(...), menh_gia: str = Form(...))
     if img is None:
         return {"status": "error", "message": "Ảnh không hợp lệ"}
 
-    # Xử lý ảnh: làm nét và tách nền
+    # Xử lý ảnh
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
     gray = clahe.apply(gray)
     
-    # Tách tiền khỏi nền
     thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
                                    cv2.THRESH_BINARY_INV, 11, 2)
     
-    # Tìm đường bao
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if not contours:
         return {"status": "error", "message": "Không tìm thấy tiền"}
     
-    # Lấy tờ tiền lớn nhất
     cnt = max(contours, key=cv2.contourArea)
     x, y, w, h = cv2.boundingRect(cnt)
     
-    # Tạo mask của tờ tiền
-    mask = np.zeros_like(gray)
-    cv2.drawContours(mask, [cnt], -1, 255, -1)
-    crop = mask[y:y+h, x:x+w]
+    # 1. TÍNH DIỆN TÍCH THỰC (pixel)
+    dien_tich_pixel = cv2.contourArea(cnt)
     
-    # Chia lưới 50x50 và đếm ô
-    so_o_con_nguyen = 0
-    rows, cols = 50, 50
-    h_step, w_step = crop.shape[0] // rows, crop.shape[1] // cols
+    # 2. TÍNH TỶ LỆ DỰA TRÊN KHUNG BAO (w, h)
+    # Vì ảnh chụp có khoảng cách khác nhau, ta dùng tỷ lệ khung hình chuẩn
+    # để suy ra 1 pixel bằng bao nhiêu mm^2
+    # Area_chuẩn_pixel = (w * h) * (tỷ lệ_đặc_điểm_tiền_so_với_khung)
+    # Cách đơn giản: Tỷ lệ = Area_contour / Area_khung_bao * (Diện_tích_chuẩn_thực_tế_đã_biết)
     
-    for r in range(rows):
-        for c in range(cols):
-            cell = crop[r*h_step:(r+1)*h_step, c*w_step:(c+1)*w_step]
-            # Nếu ô có chứa phần tiền (trên 30% pixel là trắng)
-            if cv2.countNonZero(cell) > (h_step * w_step * 0.3):
-                so_o_con_nguyen += 1
-                
-    # Tính tỷ lệ dựa trên DIỆN TÍCH CHUẨN ĐÃ QUY ĐỊNH
-    dien_tich_chuan = BANG_DIEN_TICH_CHUAN.get(menh_gia, 2400)
-    ty_le = so_o_con_nguyen / dien_tich_chuan
+    # Tuy nhiên, cách chuẩn xác nhất không dùng pixel là dùng tỷ lệ:
+    # Tỷ lệ = Area_contour / Area_bounding_box
+    # Và so sánh với một tờ tiền nguyên vẹn (thường chiếm ~0.95 - 0.98 diện tích khung bao)
     
-    # Kết luận
-    ket_luan = "ĐỦ ĐIỀU KIỆN THU ĐỔI" if ty_le >= 0.60 else "KHÔNG ĐỦ ĐIỀU KIỆN THU ĐỔI"
+    ty_le = dien_tich_pixel / (w * h)
+    
+    # Chuẩn hóa tỷ lệ: Tờ tiền nguyên vẹn ~ 0.95. 
+    # Nếu rách, tỷ lệ này sẽ giảm xuống.
+    ty_le_thuc = ty_le / 0.95 
+    ty_le_thuc = min(ty_le_thuc, 1.0)
+    
+    ket_luan = "ĐỦ ĐIỀU KIỆN THU ĐỔI" if ty_le_thuc >= 0.60 else "KHÔNG ĐỦ ĐIỀU KIỆN THU ĐỔI"
     
     return {
         "status": "success",
         "ket_luan": ket_luan,
-        "ty_le_con_lai": round(ty_le * 100, 2),
-        "debug_so_o": so_o_con_nguyen
+        "ty_le_con_lai": round(ty_le_thuc * 100, 2)
     }
 
 if __name__ == "__main__":
