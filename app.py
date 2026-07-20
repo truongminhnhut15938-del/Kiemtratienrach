@@ -56,8 +56,8 @@ async def quet_tien_api(file: UploadFile = File(...), menh_gia: str = Form(...))
             if np.mean(cell) > 50: 
                 so_o_con_nguyen += 1
                 
-    # 7. Tính toán tỷ lệ dựa trên 100 ô
-    ty_le = so_o_con_nguyen / 100
+    # 7. Tính toán tỷ lệ dựa trên 2500 ô
+    ty_le = so_o_con_nguyen / 2500
     
     # Chuẩn thu đổi 60%
     ket_luan = "ĐỦ ĐIỀU KIỆN THU ĐỔI" if ty_le >= 0.60 else "KHÔNG ĐỦ ĐIỀU KIỆN THU ĐỔI"
