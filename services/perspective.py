@@ -130,7 +130,10 @@ def four_point_transform(image, pts):
     )
 
     return warped
-    def detect_banknote(image):
+ 
+
+
+def detect_banknote(image):
     """
     Phát hiện và hiệu chỉnh tờ tiền.
     """
@@ -151,4 +154,5 @@ def four_point_transform(image, pts):
         points
     )
 
-    return warped
+    return warped   
+    
