@@ -1,1 +1,11 @@
-
+{
+    "value": 500000,
+    "currency": "VND",
+    "width_mm": 152,
+    "height_mm": 65,
+    "resize_width": 1520,
+    "resize_height": 650,
+    "exchange_threshold": 60,
+    "front_image": "front.jpg",
+    "back_image": "back.jpg"
+}
