@@ -100,3 +100,17 @@ def count_remaining_cells(mask, grid, threshold=0.3):
                 remaining += 1
 
     return remaining
+def calculate_area_ratio(remaining_cells, total_cells=None):
+    """
+    Tính tỷ lệ diện tích còn lại (%).
+    """
+
+    if total_cells is None:
+        total_cells = GRID_ROWS * GRID_COLS
+
+    if total_cells == 0:
+        return 0.0
+
+    ratio = (remaining_cells / total_cells) * 100
+
+    return round(ratio, 2)
