@@ -95,3 +95,60 @@ def get_four_points(contour):
     box = np.array(box, dtype="float32")
 
     return order_points(box)
+def four_point_transform(image, pts):
+    """
+    Biến đổi phối cảnh (Perspective Transform)
+    """
+
+    rect = order_points(pts)
+
+    (tl, tr, br, bl) = rect
+
+    widthA = np.linalg.norm(br - bl)
+    widthB = np.linalg.norm(tr - tl)
+
+    maxWidth = max(int(widthA), int(widthB))
+
+    heightA = np.linalg.norm(tr - br)
+    heightB = np.linalg.norm(tl - bl)
+
+    maxHeight = max(int(heightA), int(heightB))
+
+    dst = np.array([
+        [0, 0],
+        [maxWidth - 1, 0],
+        [maxWidth - 1, maxHeight - 1],
+        [0, maxHeight - 1]
+    ], dtype="float32")
+
+    matrix = cv2.getPerspectiveTransform(rect, dst)
+
+    warped = cv2.warpPerspective(
+        image,
+        matrix,
+        (maxWidth, maxHeight)
+    )
+
+    return warped
+    def detect_banknote(image):
+    """
+    Phát hiện và hiệu chỉnh tờ tiền.
+    """
+
+    img = resize_image(image)
+
+    edge = preprocess(img)
+
+    contour = find_largest_contour(edge)
+
+    if contour is None:
+        return None
+
+    points = get_four_points(contour)
+
+    warped = four_point_transform(
+        img,
+        points
+    )
+
+    return warped
