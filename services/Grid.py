@@ -60,7 +60,8 @@ def draw_grid(image, grid):
         )
 
     return output
-    def count_remaining_cells(mask, grid, threshold=0.3):
+    
+def count_remaining_cells(mask, grid, threshold=0.3):
     """
     Đếm số ô còn lại của tờ tiền.
     threshold = tỷ lệ pixel trắng tối thiểu để ô được tính là còn tồn tại.
