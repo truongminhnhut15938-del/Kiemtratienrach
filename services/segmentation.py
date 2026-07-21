@@ -66,6 +66,8 @@ def keep_largest_component(mask):
     )
 
     return result
+
+
 def apply_convex_hull(mask):
     """
     Tạo Convex Hull cho vùng tờ tiền.
