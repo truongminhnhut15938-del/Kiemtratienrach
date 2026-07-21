@@ -35,7 +35,7 @@ def create_mask(image):
 
     # Chỉ giữ lại vùng lớn nhất
     mask = keep_largest_component(mask)
-
+    mask = apply_convex_hull(mask)
     return mask
 
 
@@ -60,6 +60,35 @@ def keep_largest_component(mask):
     cv2.drawContours(
         result,
         [largest],
+        -1,
+        255,
+        thickness=cv2.FILLED
+    )
+
+    return result
+def apply_convex_hull(mask):
+    """
+    Tạo Convex Hull cho vùng tờ tiền.
+    """
+
+    contours, _ = cv2.findContours(
+        mask,
+        cv2.RETR_EXTERNAL,
+        cv2.CHAIN_APPROX_SIMPLE
+    )
+
+    if len(contours) == 0:
+        return mask
+
+    largest = max(contours, key=cv2.contourArea)
+
+    hull = cv2.convexHull(largest)
+
+    result = np.zeros_like(mask)
+
+    cv2.drawContours(
+        result,
+        [hull],
         -1,
         255,
         thickness=cv2.FILLED
