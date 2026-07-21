@@ -1,1 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kết quả kiểm tra</title>
 
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Kết quả kiểm tra</h1>
+
+    <div class="result-box">
+
+        <p>
+            <strong>Tỷ lệ diện tích còn lại:</strong>
+            {{ ratio }} %
+        </p>
+
+        <p>
+            <strong>Số ô còn lại:</strong>
+            {{ remaining }} / {{ total }}
+        </p>
+
+        <p>
+            <strong>Kết luận:</strong>
+            {{ message }}
+        </p>
+
+    </div>
+
+    <br>
+
+    <a href="/">
+        <button>
+            Kiểm tra ảnh khác
+        </button>
+    </a>
+
+</div>
+
+</body>
+</html>
