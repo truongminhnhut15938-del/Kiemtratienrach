@@ -52,10 +52,6 @@ def upload():
 
     # Bước 1
     warped = detect_banknote(image)
-from services.template_manager import load_template
-from services.normalizer import normalize_size
-template = load_template(500000)
-
 normalized = normalize_size(
     warped,
     template
