@@ -35,7 +35,6 @@ def create_mask(image):
 
     # Chỉ giữ lại vùng lớn nhất
     mask = keep_largest_component(mask)
-    mask = apply_convex_hull(mask)
     return mask
 
 
