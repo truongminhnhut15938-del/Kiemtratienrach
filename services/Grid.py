@@ -24,7 +24,7 @@ def create_grid(image):
         "width": w,
         "height": h
     }
-  def draw_grid(image, grid):
+def draw_grid(image, grid):
     """
     Vẽ lưới lên ảnh.
     """
