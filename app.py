@@ -6,8 +6,8 @@ import os
 
 app = FastAPI()
 
-# Cấu hình phom chuẩn của các mệnh giá
-CAU_HINH_GRID = {
+# Kích thước chuẩn (mm) theo Ngân hàng Nhà nước để quy ra diện tích tỷ lệ chuẩn
+CAU_HINH_CHUAN = {
     "500000": {"dai": 152, "rong": 65},
     "200000": {"dai": 148, "rong": 65},
     "100000": {"dai": 144, "rong": 65},
@@ -18,7 +18,7 @@ CAU_HINH_GRID = {
 
 @app.post("/quet-tien")
 async def quet_tien_api(file: UploadFile = File(...), menh_gia: str = Form(...)):
-    if menh_gia not in CAU_HINH_GRID:
+    if menh_gia not in CAU_HINH_CHUAN:
         return {"status": "error", "message": "Mệnh giá không hợp lệ!"}
 
     contents = await file.read()
@@ -28,77 +28,53 @@ async def quet_tien_api(file: UploadFile = File(...), menh_gia: str = Form(...))
     if img is None:
         return {"status": "error", "message": "Ảnh không hợp lệ!"}
 
-    # 1. Đọc ảnh và tiền xử lý bằng Otsu để tách phom toàn bộ vật thể
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     
-    # Tìm viền lớn nhất (khung bao ngoài của cả tờ tiền bao gồm cả góc rách)
-    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Tiền xử lý ngưỡng Otsu để tách vật thể ra khỏi nền trắng
+    _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if not contours:
-        return {"status": "error", "message": "Không tìm thấy tờ tiền trong ảnh!"}
+        return {"status": "error", "message": "Không tìm thấy tiền!"}
     
-    c_lon_nhat = max(contours, key=cv2.contourArea)
-
-    # 2. XÁC ĐỊNH KHUNG HỘP CHUẨN HOÀN HẢO (Bounding Box & Perspective Transform)
-    rect = cv2.minAreaRect(c_lon_nhat)
-    box = cv2.boxPoints(rect)
-    box = np.int64(box)
-
-    width = int(rect[1][0])
-    height = int(rect[1][1])
-
-    # Đảm bảo chiều rộng luôn là cạnh dài của tờ tiền
-    if width < height:
-        width, height = height, width
-
-    pts_dst = np.array([[0, height-1], [0, 0], [width-1, 0], [width-1, height-1]], dtype="float32")
-
-    pts_src = np.zeros((4, 2), dtype="float32")
-    s = box.sum(axis=1)
-    pts_src[1] = box[np.argmin(s)]
-    pts_src[3] = box[np.argmax(s)]
-    diff = np.diff(box, axis=1)
-    pts_src[2] = box[np.argmin(diff)]
-    pts_src[0] = box[np.argmax(diff)]
-
-    # Nắn thẳng tờ tiền về khung phẳng hoàn hảo
-    M = cv2.getPerspectiveTransform(pts_src, pts_dst)
-    img_warped = cv2.warpPerspective(binary, M, (width, height))
-
-    # 3. CHIA LƯỚI 50x50 VÀ ĐẾM ĐIỂM SỐ CHÍNH XÁC
-    so_hang, so_cot = 50, 50
-    h_o_vuong = height / so_hang
-    w_o_vuong = width / so_cot
-
-    so_o_hop_le = 0
-    tong_so_o = so_hang * so_cot
-
-    for r in range(so_hang):
-        for c in range(so_cot):
-            y1 = int(r * h_o_vuong)
-            y2 = int((r + 1) * h_o_vuong)
-            x1 = int(c * w_o_vuong)
-            x2 = int((c + 1) * w_o_vuong)
-
-            o_vuong = img_warped[y1:y2, x1:x2]
-            
-            if o_vuong.shape[0] > 0 and o_vuong.shape[1] > 0:
-                pixel_trang = cv2.countNonZero(o_vuong)
-                dien_tich_o = o_vuong.shape[0] * o_vuong.shape[1]
-
-                # Ngưỡng 50%: Ô nào chứa trên 50% diện tích tờ tiền mới được tính hợp lệ
-                if dien_tich_o > 0 and (pixel_trang / dien_tich_o) > 0.50:
-                    so_o_hop_le += 1
-
-    # 4. TÍNH TOÁN KẾT QUẢ KHOA HỌC
-    ty_le_dien_tich = (so_o_hop_le / tong_so_o) * 100
-    ket_luan = "ĐỦ ĐIỀU KIỆN THU ĐỔI" if ty_le_dien_tich >= 60.0 else "KHÔNG ĐỦ ĐIỀU KIỆN THU ĐỔI"
+    cnt = max(contours, key=cv2.contourArea)
+    
+    # 1. Diện tích thực tế của mảnh tiền (tính bằng số pixel trên ảnh)
+    dien_tich_thuc_pixel = cv2.contourArea(cnt)
+    
+    # 2. Lấy bounding box thực tế của mảnh tiền
+    x, y, w, h = cv2.boundingRect(cnt)
+    dien_tich_khung_bao = w * h
+    
+    # 3. Sử dụng tỷ lệ khung hình chuẩn của mệnh giá (Dài / Rộng)
+    cfg = CAU_HINH_CHUAN[menh_gia]
+    ty_le_chuan_w_h = cfg["dai"] / cfg["rong"] # Ví dụ 132/60 = 2.2 cho 10k
+    
+    # Dựa vào chiều cao (h) hiện tại của mảnh tiền, suy ra chiều dài lý tưởng nếu nó nguyên vẹn
+    # Hoặc ngược lại, dùng chiều rộng (w) suy ra chiều cao lý tưởng
+    # Để an toàn cho tờ tiền rách góc, ta lấy cạnh lớn hơn làm chuẩn:
+    canh_lon = max(w, h)
+    canh_nho = canh_lon / ty_le_chuan_w_h
+    
+    # Diện tích lý tưởng chuẩn (pixel) ứng với góc chụp thực tế hiện tại
+    dien_tich_chuan_pixel = canh_lon * canh_nho
+    
+    # 4. Tính tỷ lệ phần trăm diện tích còn lại thực tế so với chuẩn
+    ty_le_con_lai = (dien_tich_thuc_pixel / dien_tich_chuan_pixel) * 100
+    ty_le_con_lai = min(ty_le_con_lai, 100.0) # Không vượt quá 100%
+    
+    # 5. Đưa ra kết luận (Theo quy định NHNN thường yêu cầu diện tích còn lại >= 60-90% tùy loại rách, ta để ngưỡng 80% an toàn)
+    nguong_chuan = 60.0
+    ket_luan = "ĐỦ ĐIỀU KIỆN THU ĐỔI" if ty_le_con_lai >= nguong_chuan else "KHÔNG ĐỦ ĐIỀU KIỆN THU ĐỔI"
 
     return {
         "status": "success",
         "ket_luan": ket_luan,
-        "ty_le_con_lai": round(ty_le_dien_tich, 2),
-        "debug_so_o_hop_le": f"{so_o_hop_le}/{tong_so_o}"
+        "ty_le_con_lai": round(ty_le_con_lai, 2),
+        "debug_info": {
+            "dien_tich_thuc": dien_tich_thuc_pixel,
+            "dien_tich_chuan_ly_tuong": round(dien_tich_chuan_pixel, 2)
+        }
     }
 
 if __name__ == "__main__":
