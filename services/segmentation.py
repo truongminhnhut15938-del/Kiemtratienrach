@@ -38,3 +38,31 @@ def create_mask(image):
 
     return mask
 
+
+def keep_largest_component(mask):
+    """
+    Giữ lại vùng liên thông lớn nhất.
+    """
+
+    contours, _ = cv2.findContours(
+        mask,
+        cv2.RETR_EXTERNAL,
+        cv2.CHAIN_APPROX_SIMPLE
+    )
+
+    if len(contours) == 0:
+        return mask
+
+    largest = max(contours, key=cv2.contourArea)
+
+    result = np.zeros_like(mask)
+
+    cv2.drawContours(
+        result,
+        [largest],
+        -1,
+        255,
+        thickness=cv2.FILLED
+    )
+
+    return result
