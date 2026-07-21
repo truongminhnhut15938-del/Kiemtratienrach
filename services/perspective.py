@@ -31,7 +31,27 @@ def preprocess(image):
     edge = cv2.Canny(blur, 50, 150)
 
     return edge
+def enhance_edges(edge):
+    """
+    Tăng cường đường biên để xử lý
+    tiền bị rách hoặc mất góc.
+    """
 
+    kernel = np.ones((5, 5), np.uint8)
+
+    edge = cv2.morphologyEx(
+        edge,
+        cv2.MORPH_CLOSE,
+        kernel
+    )
+
+    edge = cv2.dilate(
+        edge,
+        kernel,
+        iterations=1
+    )
+
+    return edge
 
 def find_largest_contour(edge):
 
@@ -141,6 +161,7 @@ def detect_banknote(image):
     img = resize_image(image)
 
     edge = preprocess(img)
+    edge = enhance_edges (edge)
 
     contour = find_largest_contour(edge)
 
