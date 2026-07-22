@@ -251,7 +251,8 @@ def four_point_transform(image, pts):
 
 
     if max_width <= 0 or max_height <= 0:
-    return None
+       return None
+        
     dst = np.array(
         [
             [0, 0],
@@ -302,5 +303,6 @@ def detect_banknote(image):
         img,
         points
     )
-   if warped is None
-    return None
+   if warped is None:
+      return None
+   return warped
