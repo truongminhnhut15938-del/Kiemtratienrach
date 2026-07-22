@@ -133,6 +133,73 @@ AREA_EXCELLENT = 80000
 AREA_GOOD = 50000
 AREA_FAIR = 25000
 
+RECTANGLE_EXCELLENT = 0.95
+RECTANGLE_GOOD = 0.90
+RECTANGLE_FAIR = 0.80
+
+
+def score_rectangle(contour):
+    """
+    Chấm điểm mức độ giống hình chữ nhật
+    của contour.
+    """
+
+    area = cv2.contourArea(contour)
+
+    if area == 0:
+
+        return {
+            "score": 0,
+            "rectangle_ratio": 0
+        }
+
+    rect = cv2.minAreaRect(contour)
+
+    box = cv2.boxPoints(rect)
+
+    box = np.array(
+        box,
+        dtype="float32"
+    )
+
+    rectangle_area = cv2.contourArea(box)
+
+    if rectangle_area == 0:
+
+        return {
+            "score": 0,
+            "rectangle_ratio": 0
+        }
+
+    ratio = area / rectangle_area
+
+    if ratio >= RECTANGLE_EXCELLENT:
+
+        score = 25
+
+    elif ratio >= RECTANGLE_GOOD:
+
+        score = 20
+
+    elif ratio >= RECTANGLE_FAIR:
+
+        score = 10
+
+    else:
+
+        score = 0
+
+    return {
+
+        "score": score,
+
+        "rectangle_ratio": round(
+            ratio,
+            3
+        )
+
+    }
+
 
 def score_area(contour):
     """
