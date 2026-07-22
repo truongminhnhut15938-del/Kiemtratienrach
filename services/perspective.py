@@ -243,34 +243,6 @@ def score_area(contour):
     }
 
 
-def find_largest_contour(edge):
-    """
-    Tìm contour có diện tích lớn nhất.
-
-    Giai đoạn hiện tại vẫn sử dụng
-    contour lớn nhất.
-
-    Sang B1P2G1.4 sẽ thay bằng
-    find_best_contour().
-    """
-
-    contours, _ = cv2.findContours(
-        edge,
-        cv2.RETR_EXTERNAL,
-        cv2.CHAIN_APPROX_SIMPLE
-    )
-
-    if len(contours) == 0:
-        return None
-
-    largest = max(
-        contours,
-        key=cv2.contourArea
-    )
-
-    return largest
-
-
 def find_best_contour(edge):
     """
     Chọn contour có tổng điểm cao nhất.
