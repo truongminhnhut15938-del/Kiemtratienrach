@@ -1,3 +1,4 @@
+import cv2
 def check_resolution(image):
     """
     Kiểm tra độ phân giải của ảnh.
@@ -24,8 +25,8 @@ def check_resolution(image):
         "height": height,
         "shortest_side": shortest_side,
         "level": level
+        "message":...
     }
-import cv2
 def check_blur(image):
     """
     Kiểm tra độ mờ của ảnh bằng Variance of Laplacian.
@@ -56,4 +57,5 @@ def check_blur(image):
     return {
         "score": round(score, 2),
         "level": level
+        "message":.....
     }
