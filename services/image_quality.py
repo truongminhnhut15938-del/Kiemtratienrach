@@ -7,26 +7,19 @@ Module  : Image Quality Assessment
 Stage   : G1
 Part    : P1
 
+Version : 1.0
+
+Description:
+Đánh giá chất lượng ảnh đầu vào trước
+khi thực hiện các bước xử lý.
+
 Functions:
 - check_resolution()
 - check_blur()
-- check_brightness
+- check_brightness()
+
 =========================================
 """
-
-# ==========================
-# Brightness Threshold
-# ==========================
-
-BRIGHTNESS_EXCELLENT_MIN = 90
-BRIGHTNESS_EXCELLENT_MAX = 180
-
-BRIGHTNESS_GOOD_MIN = 70
-BRIGHTNESS_GOOD_MAX = 210
-
-BRIGHTNESS_FAIR_MIN = 50
-BRIGHTNESS_FAIR_MAX = 230
-
 
 import cv2
 
@@ -47,6 +40,20 @@ RESOLUTION_FAIR = 800
 BLUR_EXCELLENT = 300
 BLUR_GOOD = 150
 BLUR_FAIR = 80
+
+
+# ==========================
+# Brightness Threshold
+# ==========================
+
+BRIGHTNESS_EXCELLENT_MIN = 90
+BRIGHTNESS_EXCELLENT_MAX = 180
+
+BRIGHTNESS_GOOD_MIN = 70
+BRIGHTNESS_GOOD_MAX = 210
+
+BRIGHTNESS_FAIR_MIN = 50
+BRIGHTNESS_FAIR_MAX = 230
 
 
 def check_resolution(image):
