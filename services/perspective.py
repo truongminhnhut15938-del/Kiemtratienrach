@@ -146,6 +146,14 @@ ASPECT_RATIO_GOOD_HIGH = 2.45
 ASPECT_RATIO_FAIR_LOW = 2.00
 ASPECT_RATIO_FAIR_HIGH = 2.60
 
+# ==========================
+# Solidity Threshold
+# ==========================
+
+SOLIDITY_EXCELLENT = 0.98
+SOLIDITY_GOOD = 0.95
+SOLIDITY_FAIR = 0.90
+
 
 def score_rectangle(contour):
     """
@@ -261,6 +269,57 @@ def score_aspect_ratio(contour):
     }
 
 
+def score_solidity(contour):
+    """
+    Chấm điểm theo độ đặc (Solidity).
+
+    Solidity =
+    Contour Area / Convex Hull Area
+
+    Giá trị càng gần 1 thì contour
+    càng ít bị khuyết.
+    """
+
+    area = cv2.contourArea(contour)
+
+    hull = cv2.convexHull(contour)
+
+    hull_area = cv2.contourArea(hull)
+
+    if hull_area == 0:
+
+        return {
+            "score": 0,
+            "solidity": 0
+        }
+
+    solidity = area / hull_area
+
+    if solidity >= SOLIDITY_EXCELLENT:
+
+        score = 15
+
+    elif solidity >= SOLIDITY_GOOD:
+
+        score = 12
+
+    elif solidity >= SOLIDITY_FAIR:
+
+        score = 6
+
+    else:
+
+        score = 0
+
+    return {
+
+        "score": score,
+
+        "solidity": round(solidity, 3)
+
+    }
+
+
 def score_area(contour):
     """
     Chấm điểm theo diện tích contour.
@@ -330,12 +389,15 @@ def find_best_contour(edge):
         rectangle_info = score_rectangle(contour)
 
         aspect_info = score_aspect_ratio(contour)
+
+        solidity_info= score_solidity(contour)
         
         total_score = (
 
             area_info["score"] +
             rectangle_info["score"]+
-            aspect_info["score"]
+            aspect_info["score"]+
+            solidity_info["score"]
         )
 
         if total_score > best_score:
