@@ -10,7 +10,7 @@ Part    : P1
 Functions:
 - check_resolution()
 - check_blur()
-
+- check_brightness
 =========================================
 """
 
@@ -26,7 +26,6 @@ BRIGHTNESS_GOOD_MAX = 210
 
 BRIGHTNESS_FAIR_MIN = 50
 BRIGHTNESS_FAIR_MAX = 230
-import cv2
 
 
 # ==========================
@@ -46,7 +45,7 @@ BLUR_EXCELLENT = 300
 BLUR_GOOD = 150
 BLUR_FAIR = 80
 
-
+import cv2
 def check_resolution(image):
     """
     Kiểm tra độ phân giải của ảnh.
@@ -159,6 +158,8 @@ def check_blur(image):
         }
 
     }
+
+
 def check_brightness(image):
     """
     Kiểm tra độ sáng trung bình của ảnh.
