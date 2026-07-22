@@ -137,6 +137,16 @@ RECTANGLE_EXCELLENT = 0.95
 RECTANGLE_GOOD = 0.90
 RECTANGLE_FAIR = 0.80
 
+# ==========================
+# Aspect Ratio Threshold
+# ==========================
+
+ASPECT_RATIO_EXCELLENT = 2.30
+ASPECT_RATIO_GOOD_LOW = 2.15
+ASPECT_RATIO_GOOD_HIGH = 2.45
+ASPECT_RATIO_FAIR_LOW = 2.00
+ASPECT_RATIO_FAIR_HIGH = 2.60
+
 
 def score_rectangle(contour):
     """
@@ -194,6 +204,57 @@ def score_rectangle(contour):
         "score": score,
 
         "rectangle_ratio": round(
+            ratio,
+            3
+        )
+
+    }
+
+
+def score_aspect_ratio(contour):
+    """
+    Chấm điểm theo tỷ lệ dài/rộng
+    của contour.
+    """
+
+    rect = cv2.minAreaRect(contour)
+
+    width, height = rect[1]
+
+    if width == 0 or height == 0:
+
+        return {
+            "score": 0,
+            "aspect_ratio": 0
+        }
+
+    ratio = max(width, height) / min(width, height)
+
+    if (
+        ASPECT_RATIO_GOOD_LOW
+        <= ratio <=
+        ASPECT_RATIO_GOOD_HIGH
+    ):
+
+        score = 20
+
+    elif (
+        ASPECT_RATIO_FAIR_LOW
+        <= ratio <=
+        ASPECT_RATIO_FAIR_HIGH
+    ):
+
+        score = 10
+
+    else:
+
+        score = 0
+
+    return {
+
+        "score": score,
+
+        "aspect_ratio": round(
             ratio,
             3
         )
@@ -269,12 +330,14 @@ def find_best_contour(edge):
 
         rectangle_info = score_rectangle(contour)
 
+        aspect_info = score_aspect_ratio(contour)
+        
         total_score = (
 
             area_info["score"] +
 
-            rectangle_info["score"]
-
+            rectangle_info["score"]+
+            aspect_info["score"]
         )
 
         if total_score > best_score:
