@@ -154,6 +154,12 @@ SOLIDITY_EXCELLENT = 0.98
 SOLIDITY_GOOD = 0.95
 SOLIDITY_FAIR = 0.90
 
+# ==========================
+# Border Distance Threshold
+# ==========================
+
+BORDER_MARGIN = 20
+
 
 def score_rectangle(contour):
     """
@@ -320,6 +326,46 @@ def score_solidity(contour):
     }
 
 
+def score_border_distance(contour, image_shape):
+    """
+    Chấm điểm theo khoảng cách
+    tới mép ảnh.
+
+    Tờ tiền nằm trọn trong ảnh
+    sẽ được điểm cao hơn.
+    """
+
+    h, w = image_shape[:2]
+
+    x, y, cw, ch = cv2.boundingRect(contour)
+
+    if (
+        x <= BORDER_MARGIN or
+        y <= BORDER_MARGIN or
+        x + cw >= w - BORDER_MARGIN or
+        y + ch >= h - BORDER_MARGIN
+    ):
+
+        score = 0
+
+    else:
+
+        score = 10
+
+    return {
+
+        "score": score,
+
+        "bounding_box": (
+            x,
+            y,
+            cw,
+            ch
+        )
+
+    }
+
+
 def score_area(contour):
     """
     Chấm điểm theo diện tích contour.
@@ -362,7 +408,7 @@ def score_area(contour):
     }
 
 
-def find_best_contour(edge):
+def find_best_contour(edge,image_shape):
     """
     Chọn contour có tổng điểm cao nhất.
     """
@@ -391,13 +437,19 @@ def find_best_contour(edge):
         aspect_info = score_aspect_ratio(contour)
 
         solidity_info= score_solidity(contour)
+
+        border_info = score_border_distance(
+    contour,
+    image_shape
+        )
         
         total_score = (
 
             area_info["score"] +
             rectangle_info["score"]+
             aspect_info["score"]+
-            solidity_info["score"]
+            solidity_info["score"]+
+            border_info["score"]
         )
 
         if total_score > best_score:
@@ -554,7 +606,7 @@ def detect_banknote(image):
 
     edge = enhance_edges(edge)
 
-    contour = find_best_contour(edge)
+    contour = find_best_contour(edge,img.shape)
 
     if contour is None:
         return None
