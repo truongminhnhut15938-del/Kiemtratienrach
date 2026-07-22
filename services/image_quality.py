@@ -28,6 +28,9 @@ BRIGHTNESS_FAIR_MIN = 50
 BRIGHTNESS_FAIR_MAX = 230
 
 
+import cv2
+
+
 # ==========================
 # Resolution Threshold
 # ==========================
@@ -45,7 +48,7 @@ BLUR_EXCELLENT = 300
 BLUR_GOOD = 150
 BLUR_FAIR = 80
 
-import cv2
+
 def check_resolution(image):
     """
     Kiểm tra độ phân giải của ảnh.
