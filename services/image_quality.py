@@ -63,6 +63,8 @@ BRIGHTNESS_FAIR_MAX = 230
 CONTRAST_EXCELLENT = 70
 CONTRAST_GOOD = 50
 CONTRAST_FAIR = 30
+
+
 def check_resolution(image):
     """
     Kiểm tra độ phân giải của ảnh.
@@ -251,6 +253,8 @@ def check_brightness(image):
         }
 
     }
+
+
 def check_contrast(image):
     """
     Kiểm tra độ tương phản của ảnh.
