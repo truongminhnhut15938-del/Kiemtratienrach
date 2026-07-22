@@ -14,6 +14,18 @@ Functions:
 =========================================
 """
 
+# ==========================
+# Brightness Threshold
+# ==========================
+
+BRIGHTNESS_EXCELLENT_MIN = 90
+BRIGHTNESS_EXCELLENT_MAX = 180
+
+BRIGHTNESS_GOOD_MIN = 70
+BRIGHTNESS_GOOD_MAX = 210
+
+BRIGHTNESS_FAIR_MIN = 50
+BRIGHTNESS_FAIR_MAX = 230
 import cv2
 
 
@@ -141,6 +153,80 @@ def check_blur(image):
 
             "laplacian_variance": round(
                 blur_score,
+                2
+            )
+
+        }
+
+    }
+def check_brightness(image):
+    """
+    Kiểm tra độ sáng trung bình của ảnh.
+    """
+
+    gray = cv2.cvtColor(
+        image,
+        cv2.COLOR_BGR2GRAY
+    )
+
+    brightness_score = gray.mean()
+
+    if (
+        BRIGHTNESS_EXCELLENT_MIN
+        <= brightness_score <=
+        BRIGHTNESS_EXCELLENT_MAX
+    ):
+
+        level = "excellent"
+        score = 100
+        message = "Độ sáng rất tốt."
+
+    elif (
+        BRIGHTNESS_GOOD_MIN
+        <= brightness_score <
+        BRIGHTNESS_EXCELLENT_MIN
+    ) or (
+        BRIGHTNESS_EXCELLENT_MAX <
+        brightness_score <=
+        BRIGHTNESS_GOOD_MAX
+    ):
+
+        level = "good"
+        score = 80
+        message = "Độ sáng tốt."
+
+    elif (
+        BRIGHTNESS_FAIR_MIN
+        <= brightness_score <
+        BRIGHTNESS_GOOD_MIN
+    ) or (
+        BRIGHTNESS_GOOD_MAX <
+        brightness_score <=
+        BRIGHTNESS_FAIR_MAX
+    ):
+
+        level = "fair"
+        score = 60
+        message = "Độ sáng chưa tối ưu."
+
+    else:
+
+        level = "poor"
+        score = 30
+        message = "Ảnh quá tối hoặc quá sáng."
+
+    return {
+
+        "score": score,
+
+        "level": level,
+
+        "message": message,
+
+        "details": {
+
+            "brightness": round(
+                brightness_score,
                 2
             )
 
