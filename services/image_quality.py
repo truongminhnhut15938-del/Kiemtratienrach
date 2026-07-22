@@ -18,6 +18,7 @@ Functions:
 - check_blur()
 - check_brightness()
 - check_contrast()
+-evaluate_image_quality()
 =========================================
 """
 
