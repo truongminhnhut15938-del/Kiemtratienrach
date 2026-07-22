@@ -303,6 +303,6 @@ def detect_banknote(image):
         img,
         points
     )
-   if warped is None:
-      return None
-   return warped
+    if warped is None:
+        return None
+    return warped
