@@ -335,7 +335,6 @@ def find_best_contour(edge):
         total_score = (
 
             area_info["score"] +
-
             rectangle_info["score"]+
             aspect_info["score"]
         )
