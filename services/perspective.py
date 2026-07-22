@@ -121,14 +121,58 @@ def enhance_edges(edge):
 # B1P2G1.3
 # Thay thuật toán chọn contour lớn nhất
 # bằng thuật toán chấm điểm contour.
+# ==========================
+# Contour Scoring Threshold
+# ==========================
 
+MIN_CONTOUR_AREA = 5000
+
+AREA_EXCELLENT = 80000
+AREA_GOOD = 50000
+AREA_FAIR = 25000
 
 def find_largest_contour(edge):
     """
     Tìm contour có diện tích lớn nhất.
     (Sẽ được nâng cấp ở B1P2G1.3)
     """
+def score_area(contour):
+    """
+    Chấm điểm theo diện tích contour.
+    """
 
+    area = cv2.contourArea(contour)
+
+    if area < MIN_CONTOUR_AREA:
+
+        return {
+            "score": 0,
+            "area": area
+        }
+
+    if area >= AREA_EXCELLENT:
+
+        score = 30
+
+    elif area >= AREA_GOOD:
+
+        score = 25
+
+    elif area >= AREA_FAIR:
+
+        score = 15
+
+    else:
+
+        score = 5
+
+    return {
+
+        "score": score,
+
+        "area": round(area, 2)
+
+    }
     contours, _ = cv2.findContours(
         edge,
         cv2.RETR_EXTERNAL,
