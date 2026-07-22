@@ -17,7 +17,7 @@ Functions:
 - check_resolution()
 - check_blur()
 - check_brightness()
-
+- check_contrast()
 =========================================
 """
 
