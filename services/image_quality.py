@@ -65,6 +65,16 @@ CONTRAST_GOOD = 50
 CONTRAST_FAIR = 30
 
 
+# ==========================
+# Image Quality Weight
+# ==========================
+
+WEIGHT_RESOLUTION = 0.20
+WEIGHT_BLUR = 0.30
+WEIGHT_BRIGHTNESS = 0.25
+WEIGHT_CONTRAST = 0.25
+
+
 def check_resolution(image):
     """
     Kiểm tra độ phân giải của ảnh.
@@ -305,6 +315,87 @@ def check_contrast(image):
                 contrast_score,
                 2
             )
+
+        }
+
+    }
+
+
+def evaluate_image_quality(image):
+    """
+    Đánh giá tổng thể chất lượng ảnh.
+    """
+
+    resolution = check_resolution(image)
+
+    blur = check_blur(image)
+
+    brightness = check_brightness(image)
+
+    contrast = check_contrast(image)
+
+    total_score = (
+
+        resolution["score"] * WEIGHT_RESOLUTION +
+
+        blur["score"] * WEIGHT_BLUR +
+
+        brightness["score"] * WEIGHT_BRIGHTNESS +
+
+        contrast["score"] * WEIGHT_CONTRAST
+
+    )
+
+    if total_score >= 85:
+
+        level = "excellent"
+        message = "Ảnh đạt chất lượng rất tốt."
+
+        acceptable = True
+
+    elif total_score >= 70:
+
+        level = "good"
+        message = "Ảnh đạt yêu cầu."
+
+        acceptable = True
+
+    elif total_score >= 50:
+
+        level = "fair"
+        message = "Ảnh có thể sử dụng nhưng nên chụp lại."
+
+        acceptable = True
+
+    else:
+
+        level = "poor"
+        message = "Ảnh không đạt chất lượng."
+
+        acceptable = False
+
+    return {
+
+        "score": round(
+            total_score,
+            2
+        ),
+
+        "level": level,
+
+        "acceptable": acceptable,
+
+        "message": message,
+
+        "details": {
+
+            "resolution": resolution,
+
+            "blur": blur,
+
+            "brightness": brightness,
+
+            "contrast": contrast
 
         }
 
