@@ -243,6 +243,46 @@ def score_area(contour):
     }
 
 
+# ==========================
+# Rectangle Score
+# ==========================
+
+def score_rectangle(contour):
+    """
+    Chấm điểm theo độ giống hình chữ nhật.
+    """
+
+    peri = cv2.arcLength(contour, True)
+
+    approx = cv2.approxPolyDP(
+        contour,
+        0.02 * peri,
+        True
+    )
+
+    if len(approx) == 4:
+
+        score = 25
+
+    elif len(approx) == 5:
+
+        score = 20
+
+    elif len(approx) == 6:
+
+        score = 15
+
+    else:
+
+        score = 5
+
+    return {
+
+        "score": score,
+
+        "corners": len(approx)
+
+    }
 def find_largest_contour(edge):
     """
     Tìm contour có diện tích lớn nhất.
@@ -270,6 +310,48 @@ def find_largest_contour(edge):
 
     return largest
 
+
+def find_best_contour(edge):
+    """
+    Chọn contour có tổng điểm cao nhất.
+    """
+
+    contours, _ = cv2.findContours(
+        edge,
+        cv2.RETR_EXTERNAL,
+        cv2.CHAIN_APPROX_SIMPLE
+    )
+
+    if len(contours) == 0:
+        return None
+
+    best_contour = None
+    best_score = -1
+
+    for contour in contours:
+
+        area_info = score_area(contour)
+
+        if area_info["score"] == 0:
+            continue
+
+        rectangle_info = score_rectangle(contour)
+
+        total_score = (
+
+            area_info["score"] +
+
+            rectangle_info["score"]
+
+        )
+
+        if total_score > best_score:
+
+            best_score = total_score
+
+            best_contour = contour
+
+    return best_contour
 
 def order_points(pts):
     """
