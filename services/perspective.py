@@ -2,6 +2,26 @@ import cv2
 import numpy as np
 
 
+"""
+=========================================
+Project : KiemTraTienRach
+
+Module  : Perspective Detection
+
+Stage   : G1
+
+Part    : P2
+
+Version : 1.1
+
+Description:
+Phát hiện tờ tiền và hiệu chỉnh
+phối cảnh trước khi phân tích.
+
+=========================================
+"""
+
+
 def resize_image(image, width=1200):
     """
     Thu nhỏ ảnh để tăng tốc xử lý.
@@ -149,4 +169,138 @@ def order_points(pts):
     rect[0] = pts[np.argmin(s)]
     rect[2] = pts[np.argmax(s)]
 
-   
+    diff = np.diff(
+        pts,
+        axis=1
+    )
+
+    rect[1] = pts[np.argmin(diff)]
+    rect[3] = pts[np.argmax(diff)]
+
+    return rect
+
+
+def get_four_points(contour):
+    """
+    Lấy 4 góc của contour.
+    """
+
+    peri = cv2.arcLength(
+        contour,
+        True
+    )
+
+    approx = cv2.approxPolyDP(
+        contour,
+        0.02 * peri,
+        True
+    )
+
+    if len(approx) == 4:
+
+        pts = approx.reshape(
+            4,
+            2
+        )
+
+        return order_points(pts)
+
+    rect = cv2.minAreaRect(contour)
+
+    box = cv2.boxPoints(rect)
+
+    box = np.array(
+        box,
+        dtype="float32"
+    )
+
+    return order_points(box)
+
+
+def four_point_transform(image, pts):
+    """
+    Biến đổi phối cảnh.
+    """
+
+    rect = order_points(pts)
+
+    (tl, tr, br, bl) = rect
+
+    width_a = np.linalg.norm(
+        br - bl
+    )
+
+    width_b = np.linalg.norm(
+        tr - tl
+    )
+
+    max_width = max(
+        int(width_a),
+        int(width_b)
+    )
+
+    height_a = np.linalg.norm(
+        tr - br
+    )
+
+    height_b = np.linalg.norm(
+        tl - bl
+    )
+
+    max_height = max(
+        int(height_a),
+        int(height_b)
+    )
+
+    dst = np.array(
+        [
+            [0, 0],
+            [max_width - 1, 0],
+            [max_width - 1, max_height - 1],
+            [0, max_height - 1]
+        ],
+        dtype="float32"
+    )
+
+    matrix = cv2.getPerspectiveTransform(
+        rect,
+        dst
+    )
+
+    warped = cv2.warpPerspective(
+        image,
+        matrix,
+        (
+            max_width,
+            max_height
+        )
+    )
+
+    return warped
+
+
+def detect_banknote(image):
+    """
+    Phát hiện và hiệu chỉnh
+    phối cảnh của tờ tiền.
+    """
+
+    img = resize_image(image)
+
+    edge = preprocess(img)
+
+    edge = enhance_edges(edge)
+
+    contour = find_largest_contour(edge)
+
+    if contour is None:
+        return None
+
+    points = get_four_points(contour)
+
+    warped = four_point_transform(
+        img,
+        points
+    )
+
+    return warped
