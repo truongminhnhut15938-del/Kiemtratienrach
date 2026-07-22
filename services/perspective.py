@@ -1,25 +1,16 @@
-import cv2
-import numpy as np
-
-
 """
 =========================================
 Project : KiemTraTienRach
-
 Module  : Perspective Detection
-
 Stage   : G1
-
 Part    : P2
-
 Version : 1.1
-
-Description:
-Phát hiện tờ tiền và hiệu chỉnh
-phối cảnh trước khi phân tích.
-
 =========================================
 """
+
+
+import cv2
+import numpy as np
 
 
 def resize_image(image, width=1200):
@@ -124,6 +115,12 @@ def enhance_edges(edge):
     )
 
     return edge
+
+
+# TODO:
+# B1P2G1.3
+# Thay thuật toán chọn contour lớn nhất
+# bằng thuật toán chấm điểm contour.
 
 
 def find_largest_contour(edge):
@@ -252,6 +249,9 @@ def four_point_transform(image, pts):
         int(height_b)
     )
 
+
+    if max_width <= 0 or max_height <= 0:
+    return None
     dst = np.array(
         [
             [0, 0],
@@ -302,5 +302,5 @@ def detect_banknote(image):
         img,
         points
     )
-
-    return warped
+   if warped is None
+    return None
