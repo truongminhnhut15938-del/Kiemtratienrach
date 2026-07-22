@@ -23,6 +23,7 @@ def check_resolution(image):
     return {
         "width": width,
         "height": height,
+        "score": 100
         "shortest_side": shortest_side,
         "level": level
         "message":...
