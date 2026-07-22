@@ -56,6 +56,13 @@ BRIGHTNESS_FAIR_MIN = 50
 BRIGHTNESS_FAIR_MAX = 230
 
 
+# ==========================
+# Contrast Threshold
+# ==========================
+
+CONTRAST_EXCELLENT = 70
+CONTRAST_GOOD = 50
+CONTRAST_FAIR = 30
 def check_resolution(image):
     """
     Kiểm tra độ phân giải của ảnh.
@@ -238,6 +245,60 @@ def check_brightness(image):
 
             "brightness": round(
                 brightness_score,
+                2
+            )
+
+        }
+
+    }
+def check_contrast(image):
+    """
+    Kiểm tra độ tương phản của ảnh.
+    """
+
+    gray = cv2.cvtColor(
+        image,
+        cv2.COLOR_BGR2GRAY
+    )
+
+    contrast_score = gray.std()
+
+    if contrast_score >= CONTRAST_EXCELLENT:
+
+        level = "excellent"
+        score = 100
+        message = "Độ tương phản rất tốt."
+
+    elif contrast_score >= CONTRAST_GOOD:
+
+        level = "good"
+        score = 80
+        message = "Độ tương phản tốt."
+
+    elif contrast_score >= CONTRAST_FAIR:
+
+        level = "fair"
+        score = 60
+        message = "Độ tương phản trung bình."
+
+    else:
+
+        level = "poor"
+        score = 30
+        message = "Độ tương phản thấp."
+
+    return {
+
+        "score": score,
+
+        "level": level,
+
+        "message": message,
+
+        "details": {
+
+            "contrast": round(
+                contrast_score,
                 2
             )
 
