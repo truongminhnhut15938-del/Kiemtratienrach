@@ -131,11 +131,7 @@ AREA_EXCELLENT = 80000
 AREA_GOOD = 50000
 AREA_FAIR = 25000
 
-def find_largest_contour(edge):
-    """
-    Tìm contour có diện tích lớn nhất.
-    (Sẽ được nâng cấp ở B1P2G1.3)
-    """
+
 def score_area(contour):
     """
     Chấm điểm theo diện tích contour.
@@ -173,6 +169,12 @@ def score_area(contour):
         "area": round(area, 2)
 
     }
+def find_largest_contour(edge):
+    """
+    Tìm contour có diện tích lớn nhất.
+    (Sẽ được nâng cấp ở B1P2G1.3)
+    """
+
     contours, _ = cv2.findContours(
         edge,
         cv2.RETR_EXTERNAL,
