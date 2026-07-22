@@ -25,3 +25,35 @@ def check_resolution(image):
         "shortest_side": shortest_side,
         "level": level
     }
+import cv2
+def check_blur(image):
+    """
+    Kiểm tra độ mờ của ảnh bằng Variance of Laplacian.
+    """
+
+    gray = cv2.cvtColor(
+        image,
+        cv2.COLOR_BGR2GRAY
+    )
+
+    score = cv2.Laplacian(
+        gray,
+        cv2.CV_64F
+    ).var()
+
+    if score >= 300:
+        level = "excellent"
+
+    elif score >= 150:
+        level = "good"
+
+    elif score >= 80:
+        level = "fair"
+
+    else:
+        level = "poor"
+
+    return {
+        "score": round(score, 2),
+        "level": level
+    }
