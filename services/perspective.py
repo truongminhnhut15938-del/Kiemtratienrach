@@ -243,46 +243,6 @@ def score_area(contour):
     }
 
 
-# ==========================
-# Rectangle Score
-# ==========================
-
-def score_rectangle(contour):
-    """
-    Chấm điểm theo độ giống hình chữ nhật.
-    """
-
-    peri = cv2.arcLength(contour, True)
-
-    approx = cv2.approxPolyDP(
-        contour,
-        0.02 * peri,
-        True
-    )
-
-    if len(approx) == 4:
-
-        score = 25
-
-    elif len(approx) == 5:
-
-        score = 20
-
-    elif len(approx) == 6:
-
-        score = 15
-
-    else:
-
-        score = 5
-
-    return {
-
-        "score": score,
-
-        "corners": len(approx)
-
-    }
 def find_largest_contour(edge):
     """
     Tìm contour có diện tích lớn nhất.
@@ -499,7 +459,7 @@ def detect_banknote(image):
 
     edge = enhance_edges(edge)
 
-    contour = find_largest_contour(edge)
+    contour = find_best_contour(edge)
 
     if contour is None:
         return None
