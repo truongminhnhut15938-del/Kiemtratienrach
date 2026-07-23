@@ -467,7 +467,7 @@ def score_area(contour):
     }
 
 
-def find_best_contour(edge,image_shape):
+def find_best_contour(edge, image_shape):
     """
     Chọn contour có tổng điểm cao nhất.
     """
@@ -484,7 +484,7 @@ def find_best_contour(edge,image_shape):
     best_contour = None
     best_score = -1
 
-    for index,contour in enumerate(contours, start=1):
+    for index, contour in enumerate(contours, start=1):
 
         area_info = score_area(contour)
 
@@ -495,7 +495,7 @@ def find_best_contour(edge,image_shape):
 
         aspect_info = score_aspect_ratio(contour)
 
-        solidity_info= score_solidity(contour)
+        solidity_info = score_solidity(contour)
 
         border_info = score_border_distance(
                 contour,
@@ -507,10 +507,10 @@ def find_best_contour(edge,image_shape):
         
         total_score = (
                 area_info["score"] +
-                rectangle_info["score"]+
-                aspect_info["score"]+
-                solidity_info["score"]+
-                border_info["score"]+
+                rectangle_info["score"] +
+                aspect_info["score"] +
+                solidity_info["score"] +
+                border_info["score"] +
                 extent_info["score"]
         )
 
