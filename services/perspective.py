@@ -160,6 +160,14 @@ SOLIDITY_FAIR = 0.90
 
 BORDER_MARGIN = 20
 
+# ==========================
+# Extent Threshold
+# ==========================
+
+EXTENT_EXCELLENT = 0.95
+EXTENT_GOOD = 0.90
+EXTENT_FAIR = 0.80
+
 
 def score_rectangle(contour):
     """
@@ -326,6 +334,55 @@ def score_solidity(contour):
     }
 
 
+def score_extent(contour):
+    """
+    Chấm điểm theo Extent.
+
+    Extent =
+    Contour Area / Bounding Rect Area
+
+    Giá trị càng gần 1 thì contour
+    càng lấp đầy hình chữ nhật.
+    """
+
+    area = cv2.contourArea(contour)
+
+    x, y, w, h = cv2.boundingRect(contour)
+
+    rect_area = w * h
+
+    if rect_area == 0:
+
+        return {
+            "score": 0,
+            "extent": 0
+        }
+
+    extent = area / rect_area
+
+    if extent >= EXTENT_EXCELLENT:
+
+        score = 10
+
+    elif extent >= EXTENT_GOOD:
+
+        score = 8
+
+    elif extent >= EXTENT_FAIR:
+
+        score = 4
+
+    else:
+
+        score = 0
+
+    return {
+
+        "score": score,
+
+        "extent": round(extent, 3)
+
+    }
 def score_border_distance(contour, image_shape):
     """
     Chấm điểm theo khoảng cách
@@ -442,14 +499,16 @@ def find_best_contour(edge,image_shape):
     contour,
     image_shape
         )
-        
+
+        extent_info = score_extent(contour)
         total_score = (
 
             area_info["score"] +
             rectangle_info["score"]+
             aspect_info["score"]+
             solidity_info["score"]+
-            border_info["score"]
+            border_info["score"]+
+            extent_info["score"]
         )
 
         if total_score > best_score:
