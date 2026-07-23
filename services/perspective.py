@@ -503,7 +503,7 @@ def find_best_contour(edge,image_shape):
         extent_info = score_extent(contour)
 
         
-total_score = (
+        total_score = (
             area_info["score"] +
             rectangle_info["score"]+
             aspect_info["score"]+
