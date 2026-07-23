@@ -531,7 +531,7 @@ total_score = (
 
             best_contour = contour
 
-         print(f"--> Contour #{index} đang dẫn đầu với {best_score} điểm")
+            print(f"--> Contour #{index} đang dẫn đầu với {best_score} điểm")
 
     return best_contour
 
