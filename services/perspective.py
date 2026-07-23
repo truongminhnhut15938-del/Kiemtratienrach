@@ -383,6 +383,8 @@ def score_extent(contour):
         "extent": round(extent, 3)
 
     }
+
+    
 def score_border_distance(contour, image_shape):
     """
     Chấm điểm theo khoảng cách
