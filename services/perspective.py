@@ -482,7 +482,7 @@ def find_best_contour(edge,image_shape):
     best_contour = None
     best_score = -1
 
-    for index,contour in enumerate(contours, starts=1)
+    for index,contour in enumerate(contours, start=1):
 
         area_info = score_area(contour)
 
@@ -514,16 +514,16 @@ def find_best_contour(edge,image_shape):
 
         print(f"\n===== Contour #{index} =====")
 
-print(f"Area Score       : {area_info['score']}")
-print(f"Rectangle Score  : {rectangle_info['score']}")
-print(f"Aspect Score     : {aspect_info['score']}")
-print(f"Solidity Score   : {solidity_info['score']}")
-print(f"Border Score     : {border_info['score']}")
-print(f"Extent Score     : {extent_info['score']}")
+        print(f"Area Score       : {area_info['score']}")
+        print(f"Rectangle Score  : {rectangle_info['score']}")
+        print(f"Aspect Score     : {aspect_info['score']}")
+        print(f"Solidity Score   : {solidity_info['score']}")
+        print(f"Border Score     : {border_info['score']}")
+        print(f"Extent Score     : {extent_info['score']}")
 
-print("----------------------------")
+        print("----------------------------")
 
-print(f"TOTAL SCORE      : {total_score}")
+        print(f"TOTAL SCORE      : {total_score}")
 
         if total_score > best_score:
 
@@ -531,7 +531,7 @@ print(f"TOTAL SCORE      : {total_score}")
 
             best_contour = contour
 
-print(f"--> Contour #{index} đang dẫn đầu với {best_score} điểm")
+         print(f"--> Contour #{index} đang dẫn đầu với {best_score} điểm")
 
     return best_contour
 
