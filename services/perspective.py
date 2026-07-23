@@ -497,21 +497,22 @@ def find_best_contour(edge,image_shape):
 
         solidity_info= score_solidity(contour)
 
-        border_info = score_border_distance(
-    contour,
-    image_shape
+        border_info = 
+    score_border_distance(
+                contour,
+                image_shape
         )
 
         extent_info = score_extent(contour)
 
         
-               total_score = (
-                   area_info["score"] +
-                   rectangle_info["score"]+
-                   aspect_info["score"]+
-                   solidity_info["score"]+
-                   border_info["score"]+
-                   extent_info["score"]
+            total_score = (
+                area_info["score"] +
+                rectangle_info["score"]+
+                aspect_info["score"]+
+                solidity_info["score"]+
+                border_info["score"]+
+                extent_info["score"]
         )
 
         print(f"\n===== Contour #{index} =====")
