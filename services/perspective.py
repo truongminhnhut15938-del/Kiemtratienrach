@@ -59,7 +59,7 @@ def enhance_contrast(gray):
     return enhanced
 
 
-    def adaptive_canny(gray):
+def adaptive_canny(gray):
     """
     Tự động tính ngưỡng Canny theo
     độ sáng trung vị của ảnh.
@@ -88,6 +88,14 @@ def enhance_contrast(gray):
     )
 
     return edge
+
+
+if DEBUG:
+
+    print("\n===== Adaptive Canny =====")
+    print(f"Median : {median:.2f}")
+    print(f"Lower  : {lower}")
+    print(f"Upper  : {upper}")
 
 
 def preprocess(image):
