@@ -19,6 +19,12 @@ import numpy as np
 
 CANNY_SIGMA = 0.33
 
+# ==========================
+# Debug
+# ==========================
+
+DEBUG = True
+
 
 def resize_image(image, width=1200):
     """
