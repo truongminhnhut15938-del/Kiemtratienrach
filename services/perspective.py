@@ -90,10 +90,10 @@ def adaptive_canny(gray):
 
     if DEBUG:
 
-    print("\n===== Adaptive Canny =====")
-    print(f"Median : {median:.2f}")
-    print(f"Lower  : {lower}")
-    print(f"Upper  : {upper}")
+        print("\n===== Adaptive Canny =====")
+        print(f"Median : {median:.2f}")
+        print(f"Lower  : {lower}")
+        print(f"Upper  : {upper}")
     
     return edge
     
