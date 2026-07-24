@@ -590,9 +590,7 @@ def order_points(pts):
 def get_four_points(contour):
     """
     Lấy 4 góc của contour.
-
-    Nếu contour bị khuyết thì sử dụng
-    Convex Hull để khôi phục biên ngoài.
+    Khôi phục contour bị khuyết bằng Convex Hull.
     """
 
     hull = cv2.convexHull(contour)
@@ -609,6 +607,24 @@ def get_four_points(contour):
     )
 
     if len(approx) == 4:
+
+        pts = approx.reshape(
+            4,
+            2
+        )
+
+        return order_points(pts)
+
+    rect = cv2.minAreaRect(hull)
+
+    box = cv2.boxPoints(rect)
+
+    box = np.array(
+        box,
+        dtype="float32"
+    )
+
+    return order_points(box)
 
         pts = approx.reshape(
             4,
