@@ -635,7 +635,7 @@ def get_four_points(contour):
 
         return order_points(pts)
 
-    rect = cv2.minAreaRect(contour)
+    rect = cv2.minAreaRect(hull)
 
     box = cv2.boxPoints(rect)
 
