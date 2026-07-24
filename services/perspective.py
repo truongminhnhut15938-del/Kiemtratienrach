@@ -87,16 +87,16 @@ def adaptive_canny(gray):
         upper
     )
 
-    return edge
 
-
-if DEBUG:
+    if DEBUG:
 
     print("\n===== Adaptive Canny =====")
     print(f"Median : {median:.2f}")
     print(f"Lower  : {lower}")
     print(f"Upper  : {upper}")
-
+    
+    return edge
+    
 
 def preprocess(image):
     """
