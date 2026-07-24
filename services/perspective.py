@@ -13,6 +13,13 @@ import cv2
 import numpy as np
 
 
+# ==========================
+# Adaptive Canny
+# ==========================
+
+CANNY_SIGMA = 0.33
+
+
 def resize_image(image, width=1200):
     """
     Thu nhỏ ảnh để tăng tốc xử lý.
@@ -52,6 +59,37 @@ def enhance_contrast(gray):
     return enhanced
 
 
+    def adaptive_canny(gray):
+    """
+    Tự động tính ngưỡng Canny theo
+    độ sáng trung vị của ảnh.
+    """
+
+    median = np.median(gray)
+
+    lower = int(
+        max(
+            0,
+            (1.0 - CANNY_SIGMA) * median
+        )
+    )
+
+    upper = int(
+        min(
+            255,
+            (1.0 + CANNY_SIGMA) * median
+        )
+    )
+
+    edge = cv2.Canny(
+        gray,
+        lower,
+        upper
+    )
+
+    return edge
+
+
 def preprocess(image):
     """
     Tiền xử lý ảnh.
@@ -82,12 +120,9 @@ def preprocess(image):
         0
     )
 
-    edge = cv2.Canny(
-        blur,
-        50,
-        150
-    )
+    edge = adaptive_canny(blur)
 
+    
     return edge
 
 
