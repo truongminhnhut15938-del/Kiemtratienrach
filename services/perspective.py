@@ -95,10 +95,29 @@ def enhance_edges(edge):
     """
     Tăng cường đường biên để xử lý
     tiền bị rách hoặc mất góc.
+
+    Kernel được chọn theo kích thước
+    ảnh để phù hợp với nhiều độ phân giải.
     """
 
+    h, w = edge.shape[:2]
+
+    short_side = min(h, w)
+
+    if short_side < 600:
+
+        kernel_size = 3
+
+    elif short_side < 1200:
+
+        kernel_size = 5
+
+    else:
+
+        kernel_size = 7
+
     kernel = np.ones(
-        (5, 5),
+        (kernel_size, kernel_size),
         np.uint8
     )
 
