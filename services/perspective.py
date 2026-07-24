@@ -589,21 +589,44 @@ def order_points(pts):
 
 def get_four_points(contour):
     """
-    # Khôi phục contour bị khuyết
-hull = cv2.convexHull(contour)
+    Lấy 4 góc của contour.
 
-peri = cv2.arcLength(
-    hull,
-    True
-)
+    Nếu contour bị khuyết thì sử dụng
+    Convex Hull để khôi phục biên ngoài.
+    """
 
-approx = cv2.approxPolyDP(
-    hull,
-    0.02 * peri,
-    True
-)
+    hull = cv2.convexHull(contour)
+
+    peri = cv2.arcLength(
+        hull,
+        True
+    )
+
+    approx = cv2.approxPolyDP(
+        hull,
+        0.02 * peri,
+        True
+    )
 
     if len(approx) == 4:
+
+        pts = approx.reshape(
+            4,
+            2
+        )
+
+        return order_points(pts)
+
+    rect = cv2.minAreaRect(hull)
+
+    box = cv2.boxPoints(rect)
+
+    box = np.array(
+        box,
+        dtype="float32"
+    )
+
+    return order_points(box)
 
         pts = approx.reshape(
             4,
