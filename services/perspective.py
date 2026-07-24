@@ -644,24 +644,6 @@ def get_four_points(contour):
 
     return order_points(box)
 
-        pts = approx.reshape(
-            4,
-            2
-        )
-
-        return order_points(pts)
-
-    rect = cv2.minAreaRect(hull)
-
-    box = cv2.boxPoints(rect)
-
-    box = np.array(
-        box,
-        dtype="float32"
-    )
-
-    return order_points(box)
-
 
 def four_point_transform(image, pts):
     """
